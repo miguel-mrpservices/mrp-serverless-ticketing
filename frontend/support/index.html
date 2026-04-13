@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>mrpservices | support</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        /* Global theme variables */
+        :root {
+            --primary: #007aff;
+            --dark: #1d1d1f;
+            --bg: #fbfbfd;
+            --card-bg: #ffffff;
+            --text: #1d1d1f;
+            --secondary: #86868b;
+            --border: rgba(0,0,0,0.08);
+        }
+
+        /* Generic reset and smooth transitions */
+        * { box-sizing: border-box; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
+        body { margin: 0; font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", sans-serif; background: var(--bg); color: var(--text); -webkit-font-smoothing: antialiased; }
+
+        /* Navigation bar with frosted glass effect */
+        .header { 
+            height: 52px; 
+            background: rgba(255,255,255,0.7); 
+            backdrop-filter: saturate(180%) blur(20px); 
+            border-bottom: 1px solid var(--border); 
+            display: flex; 
+            justify-content: space-between; 
+            align-items: center; 
+            padding: 0 30px; 
+            position: sticky; 
+            top: 0; 
+            z-index: 100; 
+        }
+
+        .logo { font-size: 21px; letter-spacing: -0.03em; color: var(--dark); display: flex; align-items: center; }
+        .logo .light { font-weight: 300; opacity: 0.7; }
+        .logo .bold { font-weight: 700; margin-left: 1px; }
+        .logo .dot { color: var(--primary); font-weight: 900; }
+
+        .auth-zone { display: flex; align-items: center; gap: 20px; }
+        .user-status { font-size: 12px; font-weight: 500; color: var(--secondary); }
+        
+        .btn-auth { 
+            padding: 5px 12px; border-radius: 20px; border: 1px solid var(--border); 
+            background: #fff; cursor: pointer; font-size: 12px; font-weight: 500; color: var(--dark);
+        }
+        .btn-auth:hover { background: var(--dark); color: #fff; border-color: var(--dark); }
+
+        /* Layout wrapper and main form card */
+        .wrapper { display: flex; justify-content: center; padding: 60px 20px; min-height: calc(100vh - 52px); }
+        .card { background: var(--card-bg); border-radius: 20px; padding: 40px; width: 100%; max-width: 460px; border: 1px solid var(--border); box-shadow: 0 8px 40px rgba(0,0,0,0.04); }
+        
+        .title { font-size: 28px; font-weight: 700; margin-bottom: 8px; letter-spacing: -0.04em; }
+        .subtitle { font-size: 16px; color: var(--secondary); margin-bottom: 35px; line-height: 1.4; }
+
+        /* Form elements styling */
+        .form-group { margin-bottom: 20px; }
+        label { display: block; font-size: 13px; font-weight: 600; margin-bottom: 8px; color: var(--dark); }
+        input, textarea { 
+            width: 100%; padding: 12px; border-radius: 10px; border: 1px solid var(--border); 
+            background: #f5f5f7; font-size: 15px; outline: none; font-family: inherit; 
+        }
+        
+        input::placeholder, textarea::placeholder {
+            color: var(--secondary);
+            opacity: 0.4;
+        }
+
+        input:focus, textarea:focus { border-color: var(--primary); background: #fff; box-shadow: 0 0 0 4px rgba(0,122,255,0.1); }
+        
+        .btn-submit { 
+            width: 100%; padding: 16px; border-radius: 14px; border: none; 
+            background: var(--dark); color: white; font-weight: 600; font-size: 16px; cursor: pointer; margin-top: 10px;
+        }
+        .btn-submit:disabled { background: #d2d2d7; cursor: not-allowed; }
+
+        /* Response feedback containers */
+        .status-box { padding: 14px; border-radius: 12px; font-size: 13px; margin-bottom: 25px; background: #f2f2f7; color: var(--secondary); text-align: center; }
+        .status-box.active { background: #e8f2ff; color: var(--primary); }
+        .status-box.success { background: #eefbf3; color: #1d8045; }
+
+        .footer-note { text-align: center; margin-top: 30px; font-size: 12px; color: var(--secondary); opacity: 0.8; }
+    </style>
+</head>
+<body>
+
+<header class="header">
+    <div class="logo">
+        <span class="light">mrp</span><span class="bold">services</span><span class="dot">.</span>
+    </div>
+    <div class="auth-zone">
+        <span class="user-status" id="userStatus">Account required</span>
+        <button id="loginBtn" class="btn-auth">Sign In</button>
+        <button id="logoutBtn" class="btn-auth" style="display:none;">Sign Out</button>
+    </div>
+</header>
+
+<main class="wrapper">
+    <div class="card">
+        <div class="title">Support Request</div>
+        <div class="subtitle">Next-Gen Cloud Infrastructure Solutions.</div>
+        
+        <div id="statusBox" class="status-box">Authentication required</div>
+
+        <div class="form-group">
+            <label>Subject</label>
+            <input id="ticketTitle" placeholder="What's going on?">
+        </div>
+        <div class="form-group">
+            <label>Organization</label>
+            <input id="ticketClient" placeholder="Enter your name">
+        </div>
+        <div class="form-group">
+            <label>Message</label>
+            <textarea id="ticketDesc" placeholder="Technical details..." rows="4"></textarea>
+        </div>
+        <div class="form-group">
+            <label>Phone Number <span style="font-weight:400; opacity:0.6">(Optional)</span></label>
+            <input id="ticketPhone" type="tel" placeholder="+00 000 000 000">
+        </div>
+
+        <button class="btn-submit" id="submitBtn" disabled>Send Request</button>
+        
+        <div class="footer-note">Secure Cloud Environment &copy; 2026</div>
+    </div>
+</main>
+
+<script>
+    // Cognito endpoints and configuration
+    const DOMAIN = "https://mrpservicesauth.auth.eu-west-1.amazoncognito.com";
+    const CLIENT_ID = "5611v892rdpd48e1r11ebkrjd7";
+    const REDIRECT_URI = "https://mrpservices.tech/support/index.html";
+
+    // Handle incoming auth token from Cognito redirect hash
+    const hash = window.location.hash;
+    if (hash) {
+        const params = new URLSearchParams(hash.substring(1));
+        const idToken = params.get("id_token");
+        if (idToken) {
+            localStorage.setItem("token", idToken);
+            // Clean up the URL to hide the token
+            window.history.replaceState({}, document.title, window.location.pathname);
+        }
+    }
+
+    const token = localStorage.getItem("token");
+
+    // UI updates based on session existence
+    if (token) {
+        document.getElementById("userStatus").innerText = "Authorized Session";
+        document.getElementById("loginBtn").style.display = "none";
+        document.getElementById("logoutBtn").style.display = "inline-block";
+        document.getElementById("submitBtn").disabled = false;
+        const status = document.getElementById("statusBox");
+        status.innerText = "✓ Connected to Cloud API";
+        status.classList.add("active");
+    }
+
+    // Trigger Cognito login flow
+    document.getElementById("loginBtn").onclick = () => {
+        window.location.href = `${DOMAIN}/login?client_id=${CLIENT_ID}&response_type=token&scope=email+openid+phone&redirect_uri=${encodeURIComponent(REDIRECT_URI)}`;
+    };
+
+    // Cleanup session and sign out
+    document.getElementById("logoutBtn").onclick = () => {
+        localStorage.removeItem("token");
+        window.location.href = `${DOMAIN}/logout?client_id=${CLIENT_ID}&logout_uri=${encodeURIComponent(REDIRECT_URI)}`;
+    };
+
+    // API submission logic
+    document.getElementById("submitBtn").onclick = async () => {
+        const btn = document.getElementById("submitBtn");
+        const status = document.getElementById("statusBox");
+        
+        const data = {
+            title: document.getElementById("ticketTitle").value.trim(),
+            client: document.getElementById("ticketClient").value.trim(),
+            description: document.getElementById("ticketDesc").value.trim(),
+            contact: document.getElementById("ticketPhone").value.trim() || "Not provided"
+        };
+
+        // Basic sanity check before hitting the endpoint
+        if (!data.title || !data.client || !data.description) {
+            return alert("Subject, Organization and Message are required");
+        }
+
+        btn.disabled = true;
+        btn.innerText = "Sending...";
+
+        try {
+            // Post payload to our Lambda/API Gateway
+            const res = await fetch("https://r2h3exoigh.execute-api.eu-west-1.amazonaws.com/tickets", {
+                method: "POST",
+                headers: { 
+                    "Content-Type": "application/json", 
+                    "Authorization": `Bearer ${token}` 
+                },
+                body: JSON.stringify(data)
+            });
+
+            if (res.ok) {
+                status.innerText = "Request received successfully.";
+                status.className = "status-box success";
+                // Reset form fields after success
+                ["ticketTitle", "ticketClient", "ticketDesc", "ticketPhone"].forEach(id => document.getElementById(id).value = "");
+            } else {
+                const errData = await res.json();
+                alert("Error: " + JSON.stringify(errData.detail));
+            }
+        } catch (err) {
+            alert("Error connecting to the API.");
+        } finally {
+            btn.disabled = false;
+            btn.innerText = "Send Request";
+        }
+    };
+</script>
+
+</body>
+</html>

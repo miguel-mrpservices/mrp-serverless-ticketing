@@ -1,0 +1,413 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>mrpservices | admin console</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        /* Modern Apple-style UI theme */
+        :root { 
+            --primary: #007aff; 
+            --dark: #1d1d1f; 
+            --bg: #f5f5f7; 
+            --sidebar: #ffffff; 
+            --border: rgba(0,0,0,0.08); 
+            --secondary: #86868b; 
+        }
+        
+        * { box-sizing: border-box; transition: all 0.2s ease; }
+        
+        body { 
+            margin: 0; 
+            font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", sans-serif; 
+            background: var(--bg); 
+            display: flex; 
+            flex-direction: column; 
+            height: 100vh; 
+            overflow: hidden; 
+            color: var(--dark);
+        }
+
+        /* Glassmorphism header effect */
+        .header { 
+            height: 52px; 
+            background: rgba(255,255,255,0.7); 
+            backdrop-filter: saturate(180%) blur(20px); 
+            border-bottom: 1px solid var(--border); 
+            display: flex; 
+            justify-content: space-between; 
+            align-items: center; 
+            padding: 0 30px; 
+            position: fixed; 
+            top: 0; 
+            left: 0;
+            right: 0;
+            z-index: 1000; 
+        }
+
+        .logo { font-size: 21px; letter-spacing: -0.03em; color: var(--dark); display: flex; align-items: center; cursor: pointer; }
+        .logo .light { font-weight: 300; opacity: 0.7; }
+        .logo .bold { font-weight: 700; margin-left: 1px; }
+        .logo .dot { color: var(--primary); font-weight: 900; }
+
+        .auth-zone { display: flex; align-items: center; gap: 20px; }
+        .user-status { font-size: 12px; font-weight: 500; color: var(--secondary); }
+        
+        .btn-auth { 
+            padding: 5px 12px; border-radius: 20px; border: 1px solid var(--border); 
+            background: #fff; cursor: pointer; font-size: 12px; font-weight: 500; color: var(--dark);
+        }
+        .btn-auth:hover { background: #ff3b30; color: #fff; border-color: #ff3b30; }
+
+        .app-container {
+            display: flex;
+            flex: 1;
+            margin-top: 52px; 
+            overflow: hidden;
+        }
+
+        .sidebar { 
+            width: 260px; 
+            background: var(--sidebar); 
+            border-right: 1px solid var(--border); 
+            display: flex; 
+            flex-direction: column; 
+            padding: 24px; 
+            z-index: 100;
+        }
+        
+        .nav-group { margin-bottom: 30px; }
+        .nav-label { font-size: 10px; font-weight: 700; color: var(--secondary); text-transform: uppercase; margin-bottom: 12px; letter-spacing: 0.05em; padding-left: 10px; }
+        
+        .nav-item { 
+            padding: 12px 15px; border-radius: 12px; font-size: 14px; font-weight: 500; 
+            cursor: pointer; margin-bottom: 4px; color: var(--dark); text-decoration: none; 
+            display: flex; justify-content: space-between; align-items: center; 
+        }
+        .nav-item:hover { background: rgba(0,0,0,0.04); }
+        .nav-item.active { background: var(--dark); color: white; }
+        .badge-count { background: var(--primary); color: white; font-size: 10px; padding: 2px 7px; border-radius: 10px; font-weight: 700; }
+
+        .main { flex: 1; display: flex; flex-direction: column; overflow-y: auto; background: var(--bg); }
+        
+        .container { padding: 40px 60px; max-width: 1000px; margin: 0 auto; width: 100%; }
+        
+        .page-section { display: none; }
+        .page-section.active { display: block; animation: fadeIn 0.4s ease; }
+
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+        h1 { font-size: 34px; font-weight: 700; letter-spacing: -0.04em; margin-bottom: 10px; }
+
+        .search-bar { 
+            width: 100%; padding: 14px 20px; border-radius: 14px; border: 1px solid var(--border); 
+            margin-bottom: 25px; font-size: 15px; outline: none; background: white;
+        }
+        
+        /* Segmented control style for filtering */
+        .filter-tabs { display: flex; background: rgba(0,0,0,0.05); padding: 3px; border-radius: 10px; width: fit-content; margin-bottom: 30px; }
+        .tab-btn { 
+            padding: 6px 18px; border-radius: 8px; border: none; background: transparent; 
+            font-size: 13px; font-weight: 500; cursor: pointer; color: var(--secondary);
+        }
+        .tab-btn.active { background: white; color: var(--dark); box-shadow: 0 2px 8px rgba(0,0,0,0.08); }
+
+        .ticket-card { 
+            background: white; padding: 24px; border-radius: 16px; border: 1px solid var(--border); 
+            margin-bottom: 16px; display: grid; grid-template-columns: 1fr auto; align-items: start; gap: 20px;
+        }
+        .ticket-card:hover { transform: translateY(-2px); box-shadow: 0 10px 30px rgba(0,0,0,0.04); }
+        
+        .ticket-main { display: flex; flex-direction: column; gap: 4px; }
+        .ticket-header { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+        .ticket-header h3 { margin: 0; font-size: 16px; font-weight: 600; color: var(--dark); letter-spacing: -0.01em; }
+        
+        .status-badge { font-size: 10px; font-weight: 600; padding: 2px 8px; border-radius: 6px; text-transform: uppercase; }
+        .status-open { background: #fff1e6; color: #f56a00; }
+        .status-resolved { background: #e6f4ea; color: #1e7e34; }
+        
+        .time-text { font-size: 11px; color: var(--secondary); font-weight: 400; }
+        .ticket-meta { font-size: 13px; color: var(--secondary); margin-bottom: 8px; }
+        
+        .ticket-desc { 
+            font-size: 14px; color: #424245; line-height: 1.5; margin: 4px 0 12px 0;
+            border-left: 2px solid #eee; padding-left: 12px;
+        }
+        
+        .ticket-footer { 
+            display: flex; align-items: center; gap: 15px; font-size: 12px; color: var(--secondary);
+            border-top: 1px solid #f5f5f7; padding-top: 12px;
+        }
+        .contact-pill { color: var(--primary); font-weight: 500; text-decoration: none; }
+
+        .btn-action { 
+            font-size: 12px; padding: 10px 16px; border-radius: 12px; border: 1px solid var(--border); 
+            background: white; font-weight: 600; cursor: pointer; white-space: nowrap;
+        }
+        .btn-action:hover { background: var(--dark); color: white; }
+
+        .form-card { background: white; padding: 35px; border-radius: 20px; border: 1px solid var(--border); }
+        .form-group { margin-bottom: 20px; }
+        label { display: block; font-size: 13px; font-weight: 600; margin-bottom: 8px; }
+        input, textarea { 
+            width: 100%; padding: 14px; border-radius: 12px; border: 1px solid var(--border); 
+            background: #fbfbfd; font-size: 15px; outline: none; font-family: inherit;
+        }
+        .btn-submit { 
+            background: var(--dark); color: white; border: none; padding: 16px; 
+            border-radius: 14px; font-weight: 600; cursor: pointer; width: 100%; font-size: 15px;
+        }
+    </style>
+</head>
+<body>
+
+<header class="header">
+    <div class="logo" onclick="location.reload()">
+        <span class="light">mrp</span><span class="bold">services</span><span class="dot">.</span>
+    </div>
+    <div class="auth-zone">
+        <span class="user-status">Secure Admin Session</span>
+        <button class="btn-auth" onclick="logout()">Sign Out</button>
+    </div>
+</header>
+
+<div class="app-container">
+    <aside class="sidebar">
+        <div class="nav-group">
+            <div class="nav-label">Management</div>
+            <div class="nav-item active" onclick="showPage('view-tickets', this)">
+                <span>View Tickets</span>
+                <span id="openCount" class="badge-count" style="display:none">0</span>
+            </div>
+            <div class="nav-item" onclick="showPage('create-ticket', this)">Create Ticket</div>
+        </div>
+
+        <div class="nav-group">
+            <div class="nav-label">External Access</div>
+            <a href="/support/index.html" class="nav-item">Support Portal ↗</a>
+        </div>
+    </aside>
+
+    <main class="main">
+        <div class="container">
+            <section id="view-tickets" class="page-section active">
+                <h1>Active Tickets</h1>
+                <input type="text" class="search-bar" id="ticketSearch" placeholder="Search by client, title or email..." onkeyup="renderTickets()">
+                
+                <div class="filter-tabs">
+                    <button class="tab-btn" onclick="setFilter('all', this)">All</button>
+                    <button class="tab-btn active" onclick="setFilter('open', this)">Open</button>
+                    <button class="tab-btn" onclick="setFilter('resolved', this)">Resolved</button>
+                </div>
+                
+                <div id="ticketList"></div>
+            </section>
+
+            <section id="create-ticket" class="page-section">
+                <h1>New Internal Ticket</h1>
+                <div class="form-card">
+                    <div class="form-group">
+                        <label>Subject</label>
+                        <input id="t-title" placeholder="Issue title">
+                    </div>
+                    <div class="form-group">
+                        <label>Client / Organization</label>
+                        <input id="t-client" placeholder="Company name">
+                    </div>
+                    <div class="form-group">
+                        <label>Description</label>
+                        <textarea id="t-desc" rows="5" placeholder="Technical details..."></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label>Contact Phone</label>
+                        <input id="t-phone" placeholder="+00 000 000 000">
+                    </div>
+                    <button class="btn-submit" id="submitBtn" onclick="submitTicket()">Create Ticket</button>
+                </div>
+            </section>
+        </div>
+    </main>
+</div>
+
+<script>
+    const API_URL = "https://r2h3exoigh.execute-api.eu-west-1.amazonaws.com";
+    
+    // Auth flow: Handle implicit grant redirection from Cognito
+    if (window.location.hash.includes("id_token")) {
+        const params = new URLSearchParams(window.location.hash.substring(1));
+        const idToken = params.get("id_token");
+        if (idToken) {
+            localStorage.setItem("token", idToken);
+            // Clean URL hash after capturing the token
+            window.history.replaceState({}, document.title, window.location.pathname);
+        }
+    }
+
+    let token = localStorage.getItem("token");
+
+    // --- RBAC ROUTE GUARD ---
+    if (!token) {
+        // Redirect to login if no token found
+        window.location.href = "https://mrpservicesauth.auth.eu-west-1.amazoncognito.com/login?client_id=5611v892rdpd48e1r11ebkrjd7&response_type=token&scope=email+openid&redirect_uri=https://mrpservices.tech/admin/index.html";
+    } else {
+        try {
+            // Decode JWT to check for "Admins" group
+            const payload = JSON.parse(atob(token.split('.')[1]));
+            const groups = payload["cognito:groups"] || [];
+
+            if (!groups.includes("Admins")) {
+                alert("Access Denied: You do not have administrator privileges.");
+                localStorage.clear();
+                window.location.href = "/support/index.html"; 
+            }
+        } catch (e) {
+            console.error("Token validation error");
+            logout();
+        }
+    }
+
+    let allTickets = [];
+    let currentFilter = "open";
+
+    // Helper for relative timestamps
+    function timeAgo(dateParam) {
+        if (!dateParam) return "";
+        const date = new Date(dateParam);
+        const seconds = Math.round((new Date() - date) / 1000);
+        const minutes = Math.round(seconds / 60);
+        const hours = Math.round(minutes / 60);
+        const days = Math.round(hours / 24);
+
+        if (seconds < 60) return 'Just now';
+        if (minutes < 60) return `${minutes}m ago`;
+        if (hours < 24) return `${hours}h ago`;
+        if (days < 7) return `${days}d ago`;
+        return date.toLocaleDateString();
+    }
+
+    // SPA routing logic
+    function showPage(id, el) {
+        document.querySelectorAll('.page-section').forEach(s => s.classList.remove('active'));
+        document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
+        document.getElementById(id).classList.add('active');
+        el.classList.add('active');
+        if(id === 'view-tickets') loadTickets();
+    }
+
+    function setFilter(f, el) {
+        currentFilter = f;
+        document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+        el.classList.add('active');
+        renderTickets();
+    }
+
+    // Fetch latest tickets from API Gateway
+    async function loadTickets() {
+        if (!token) return;
+        try {
+            const res = await fetch(`${API_URL}/tickets`, { headers: { "Authorization": `Bearer ${token}` }});
+            if(res.status === 401) logout();
+            if(res.status === 403) {
+                alert("Session expired or unauthorized.");
+                logout();
+            }
+            allTickets = await res.json();
+            
+            // Update UI badges
+            const opens = allTickets.filter(t => t.status === 'open').length;
+            const badge = document.getElementById("openCount");
+            badge.innerText = opens; badge.style.display = opens > 0 ? 'block' : 'none';
+            
+            renderTickets();
+        } catch(e) { console.error("API error"); }
+    }
+
+    // Filter and display logic
+    function renderTickets() {
+        const list = document.getElementById("ticketList");
+        const query = document.getElementById("ticketSearch").value.toLowerCase();
+        let filtered = allTickets;
+        
+        if (currentFilter !== "all") filtered = filtered.filter(t => t.status === currentFilter);
+        
+        if (query) {
+            filtered = filtered.filter(t => 
+                t.title.toLowerCase().includes(query) || 
+                t.client.toLowerCase().includes(query) || 
+                (t.email && t.email.toLowerCase().includes(query))
+            );
+        }
+
+        list.innerHTML = filtered.map(t => `
+            <div class="ticket-card">
+                <div class="ticket-main">
+                    <div class="ticket-header">
+                        <h3>${t.title}</h3>
+                        <span class="status-badge status-${t.status}">${t.status}</span>
+                        <span class="time-text">• ${timeAgo(t.created_at)}</span>
+                    </div>
+                    
+                    <div class="ticket-meta">${t.client} • ${t.email || 'Internal'}</div>
+                    
+                    <div class="ticket-desc">
+                        ${t.description || "No additional details provided."}
+                    </div>
+                    
+                    <div class="ticket-footer">
+                        <span>Contact: <span class="contact-pill">${t.contact || 'N/A'}</span></span>
+                    </div>
+                </div>
+                
+                <div class="ticket-actions">
+                    <button class="btn-action" onclick="updateStatus('${t.id}', '${t.status === 'open' ? 'resolve' : 'reopen'}')">
+                        ${t.status === 'open' ? 'Resolve' : 'Reopen'}
+                    </button>
+                </div>
+            </div>
+        `).join("");
+    }
+
+    // POST new ticket entry
+    async function submitTicket() {
+        const btn = document.getElementById("submitBtn");
+        const data = {
+            title: document.getElementById("t-title").value,
+            client: document.getElementById("t-client").value,
+            description: document.getElementById("t-desc").value,
+            contact: document.getElementById("t-phone").value || "Not provided"
+        };
+        
+        if(!data.title || !data.client) return alert("Please complete title and client.");
+        
+        btn.disabled = true;
+        try {
+            const res = await fetch(`${API_URL}/tickets`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json", "Authorization": `Bearer ${token}` },
+                body: JSON.stringify(data)
+            });
+            if(res.ok) { 
+                alert("Ticket created successfully."); 
+                location.reload(); 
+            }
+        } finally { btn.disabled = false; }
+    }
+
+    // PUT request to update ticket status
+    async function updateStatus(id, action) {
+        await fetch(`${API_URL}/tickets/${id}/${action}`, { 
+            method: "PUT", 
+            headers: { "Authorization": `Bearer ${token}` }
+        });
+        loadTickets();
+    }
+
+    function logout() { localStorage.clear(); location.reload(); }
+    
+    // Initial load
+    if (token) {
+        loadTickets();
+    }
+</script>
+</body>
+</html>

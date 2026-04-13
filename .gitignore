@@ -1,0 +1,18 @@
+# Terraform
+.terraform/
+*.tfstate
+*.tfstate.backup
+.terraform.lock.hcl
+
+# Credenciales y variables sensibles
+*.tfvars
+auth_token.txt
+secret.txt
+
+# Python
+__pycache__/
+*.py[cod]
+lambda_function.zip
+
+# OS
+.DS_Store

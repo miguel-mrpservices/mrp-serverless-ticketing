@@ -27,7 +27,9 @@ jobs:
 
       - name: tf-init
         run: terraform init
+        working-directory: ./infra
 
       - name: tf-plan
         run: terraform plan
+        working-directory: ./infra
 

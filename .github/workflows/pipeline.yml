@@ -1,0 +1,33 @@
+name: infra-workflow
+
+on:
+  push:
+    branches: [ main, feature/test-pipeline ]
+
+jobs:
+  tf-deploy:
+    name: build-and-deploy
+    runs-on: ubuntu-latest
+    
+    env:
+      AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+      AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+      AWS_REGION: "eu-west-1" 
+
+      TF_VAR_cert_arn: ${{ secrets.CERT_ARN }}
+      TF_VAR_sns_email_endpoint: ${{ secrets.SNS_EMAIL_ENDPOINT}}
+
+
+    steps:
+      - name: checkout-repo
+        uses: actions/checkout@v4
+
+      - name: setup-tf-cli
+        uses: hashicorp/setup-terraform@v3
+
+      - name: tf-init
+        run: terraform init
+
+      - name: tf-plan
+        run: terraform plan
+

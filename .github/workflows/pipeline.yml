@@ -2,7 +2,7 @@ name: infra-workflow
 
 on:
   push:
-    branches: [ main, feature/test-pipeline ]
+    branches: [ main ]
 
 jobs:
   tf-deploy:
@@ -31,5 +31,9 @@ jobs:
 
       - name: tf-plan
         run: terraform plan
+        working-directory: ./infra
+
+      - name: tf-apply
+        run: terraform apply
         working-directory: ./infra
 

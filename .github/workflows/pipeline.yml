@@ -1,39 +1,36 @@
-name: infra-workflow
+name: ticketing-infra-cicd
 
 on:
   push:
-    branches: [ main ]
+    branches: [ "**" ] 
 
 jobs:
-  tf-deploy:
-    name: build-and-deploy
+  terraform:
     runs-on: ubuntu-latest
-    
     env:
       AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
       AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
       AWS_REGION: "eu-west-1" 
-
       TF_VAR_cert_arn: ${{ secrets.CERT_ARN }}
-      TF_VAR_sns_email_endpoint: ${{ secrets.SNS_EMAIL_ENDPOINT}}
-
+      TF_VAR_sns_email_endpoint: ${{ secrets.SNS_EMAIL_ENDPOINT }}
 
     steps:
-      - name: checkout-repo
+      - name: Checkout Code
         uses: actions/checkout@v4
 
-      - name: setup-tf-cli
+      - name: Setup Terraform
         uses: hashicorp/setup-terraform@v3
 
-      - name: tf-init
+      - name: Terraform Init
         run: terraform init
         working-directory: ./infra
 
-      - name: tf-plan
+      - name: Terraform Plan
         run: terraform plan
         working-directory: ./infra
 
-      - name: tf-apply
+      - name: Terraform Apply
+        #This step ll be just executed if working in main
+        if: github.ref == 'refs/heads/main'
         run: terraform apply -auto-approve
         working-directory: ./infra
-

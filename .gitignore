@@ -1,18 +1,25 @@
-# Terraform
+# --- TERRAFORM ---
+# Ignore the local .terraform directory (plugins and modules)
 .terraform/
+
+# Ignore local state files (now handled by S3)
 *.tfstate
-*.tfstate.backup
-.terraform.lock.hcl
+*.tfstate.*
 
-# Credenciales y variables sensibles
+# Ignore sensitive variable files (CRITICAL: Never commit these!)
 *.tfvars
-auth_token.txt
-secret.txt
+*.tfvars.json
 
-# Python
-__pycache__/
-*.py[cod]
-lambda_function.zip
+# Ignore local override files
+override.tf
+override.tf.json
+*_override.tf
+*_override.tf.json
 
-# OS
+# Ignore Terraform crash logs
+crash.log
+*.usage.log
+
+# --- SYSTEM FILES ---
 .DS_Store
+Thumbs.db
